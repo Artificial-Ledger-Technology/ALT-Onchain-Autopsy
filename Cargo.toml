@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    "alt-autopsy-core",
+    "alt-autopsy-cli",
+]
+resolver = "2"
