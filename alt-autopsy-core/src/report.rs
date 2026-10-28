@@ -29,3 +29,4 @@ pub fn generate_markdown_report(incident: &IncidentTrace) -> String {
 
     doc
 }
+

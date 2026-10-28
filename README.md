@@ -3,16 +3,22 @@
 > **Blockchain Incident Post-Mortem Repository & WebAssembly Forensic Analysis Platform**  
 > Dissecting multi-chain smart contract exploits through deterministic Rust/WASM execution, interactive transaction call traces, live balance deltas, and compiler-verified invariant patches.
 
+[![Ecosystem](https://img.shields.io/badge/Ecosystem-Solana%20%7C%20EVM%20%7C%20Move-00F2FE?style=flat-square)](https://github.com/Artificial-Ledger-Technology/ALT-Onchain-Autopsy)
+[![Engine](https://img.shields.io/badge/Rust_WASM-alt--autopsy--core%20v0.4.2-059669?style=flat-square)](https://github.com/Artificial-Ledger-Technology/ALT-Onchain-Autopsy)
+[![License](https://img.shields.io/badge/License-MIT%20%7C%20Apache--2.0-blue?style=flat-square)](LICENSE)
+[![Build Status](https://img.shields.io/badge/Build-Passing-emerald?style=flat-square)](https://github.com/Artificial-Ledger-Technology/ALT-Onchain-Autopsy)
+[![Indexed Losses](https://img.shields.io/badge/Indexed_Losses-$839.4M_USD-DC2626?style=flat-square)](https://github.com/Artificial-Ledger-Technology/ALT-Onchain-Autopsy)
+
 ---
 
 ## Table of Contents
 
 - [1. Overview & Vision](#1-overview--vision)
-- [2. Platform Showcase & Key Features](#2-platform-showcase--key-features)
+- [2. Platform Architecture & Visual Showcase](#2-platform-architecture--visual-showcase)
   - [Interactive Call Trace Timeline & Playback](#interactive-call-trace-timeline--playback)
-  - [Invariant & Patch Verification Sandbox](#invariant--patch-verification-sandbox)
+  - [Rust Invariant & Remediation Sandbox](#rust-invariant--remediation-sandbox)
   - [Side-by-Side Source Code Invariant Diff](#side-by-side-source-code-invariant-diff)
-  - [Multi-Chain Forensic Threat Repository & Catalog](#multi-chain-forensic-threat-repository--catalog)
+  - [Forensic Threat Repository & Incident Catalog](#forensic-threat-repository--incident-catalog)
   - [Reproducible Proof of Concept (PoC) Test Harness](#reproducible-proof-of-concept-poc-test-harness)
   - [Executive Post-Mortem Report & Markdown Exporter](#executive-post-mortem-report--markdown-exporter)
   - [Rust WebAssembly Core Engine Specifications](#rust-webassembly-core-engine-specifications)
@@ -24,33 +30,42 @@
   - [Cross-Chain: Nomad Bridge Replica Zero-Root Bypass ($190M)](#cross-chain-nomad-bridge-replica-zero-root-bypass-190m)
   - [Solana: Mango Markets Perpetual Oracle & Collateral Manipulation ($114M)](#solana-mango-markets-perpetual-oracle--collateral-manipulation-114m)
   - [Move: Precision Rounding & Flash-Mint Fee Truncation ($12.4M)](#move-precision-rounding--flash-mint-fee-truncation-124m)
-- [5. Rust Crate Architecture (`alt-autopsy-core`)](#5-rust-crate-architecture-alt-autopsy-core)
-  - [Crate Structure](#crate-structure)
-  - [`Cargo.toml` Specification](#cargotoml-specification)
-  - [Core Rust Data Structures & Invariant Pipeline](#core-rust-data-structures--invariant-pipeline)
-  - [WebAssembly Bindings (`wasm-bindgen`)](#webassembly-bindings-wasm-bindgen)
-- [6. CLI Terminal Usage (`alt-autopsy-cli`)](#6-cli-terminal-usage-alt-autopsy-cli)
-- [7. Local Development & Web Application Setup](#7-local-development--web-application-setup)
-- [8. Automated Screenshot Generation](#8-automated-screenshot-generation)
-- [9. Contributing a New Autopsy](#9-contributing-a-new-autopsy)
-- [10. Security Policy & Invariant Verification Standards](#10-security-policy--invariant-verification-standards)
-- [11. License & Credits](#11-license--credits)
+- [5. Native Rust Workspace Architecture (`alt-autopsy-core` & `alt-autopsy-cli`)](#5-native-rust-workspace-architecture-alt-autopsy-core--alt-autopsy-cli)
+  - [Cargo Workspace Structure](#cargo-workspace-structure)
+  - [Crate Specifications (`Cargo.toml`)](#crate-specifications-cargotoml)
+  - [Core Data Structures & Invariant Pipeline](#core-data-structures--invariant-pipeline)
+  - [WebAssembly Interface (`wasm-bindgen`)](#webassembly-interface-wasm-bindgen)
+  - [Command-Line Interface (`alt-autopsy-cli`)](#command-line-interface-alt-autopsy-cli)
+- [6. Breakthrough Installation & Run Guide](#6-breakthrough-installation--run-guide)
+  - [System Prerequisites](#system-prerequisites)
+  - [Step 1: Clone the Repository](#step-1-clone-the-repository)
+  - [Step 2: Install Web Dependencies](#step-2-install-web-dependencies)
+  - [Step 3: Run the Development Server](#step-3-run-the-development-server)
+  - [Step 4: Build for Production & Preview](#step-4-build-for-production--preview)
+  - [Step 5: Run Static Type Checking & Linting](#step-5-run-static-type-checking--linting)
+  - [Step 6: Build & Test Native Rust Crates](#step-6-build--test-native-rust-crates)
+  - [Step 7: Automated Visual Test & Screenshot Suite](#step-7-automated-visual-test--screenshot-suite)
+  - [Troubleshooting & Common Pitfalls](#troubleshooting--common-pitfalls)
+- [7. Forensic Invariant Methodology](#7-forensic-invariant-methodology)
+- [8. Contributing a New Autopsy](#8-contributing-a-new-autopsy)
+- [9. Security Policy & Invariant Verification Standards](#9-security-policy--invariant-verification-standards)
+- [10. License & Research Credits](#10-license--research-credits)
 
 ---
 
 ## 1. Overview & Vision
 
-Security post-mortems in Web3 are traditionally published as scattered, static blog posts, Twitter threads, or Discord notices. Security engineers, protocol developers, and auditors must manually cross-reference block explorer logs, decompiled bytecode, and disparate forum notes to decipher what transpired during an exploit transaction.
+Security post-mortems in Web3 are traditionally published as scattered blog posts, fragmented tweets, or Discord announcements. Protocol developers, whitehats, and auditors frequently spend hours cross-referencing raw block explorer logs, decompiled bytecode, and disparate forum notes to decipher what transpired during an exploit transaction.
 
 **ALT-Onchain-Autopsy** transforms post-mortems into **interactive, reproducible on-chain autopsies**:
-1. **Deterministic Rust Execution**: A client-side WebAssembly engine compiled from Rust parses raw instruction calldata, tracks state changes, and calculates balance deltas with microsecond latency.
+1. **Deterministic Rust Execution**: A native client-side WebAssembly engine (`alt-autopsy-core`) compiled from Rust parses transaction call stacks, traces internal invocations, and computes multi-asset balance deltas with sub-millisecond execution.
 2. **Step-by-Step Transaction Playback**: A visual timeline scrubber that walks researchers through each invocation level—from the initial attacker transaction to deep Cross-Program Invocations (CPIs) in Solana or internal `DELEGATECALL` routines in EVM contracts.
 3. **Formal Invariant Validation**: Rather than just explaining the flaw, the platform formalizes the broken invariant in code and lets researchers toggle the remediation patch to verify whether the exploit reverts under hardened conditions.
 4. **Reproducible Proof of Concepts (PoCs)**: Every incident includes production-ready test cases in Anchor, `solana-program-test`, Foundry Forge, or Aptos Move CLI.
 
 ---
 
-## 2. Platform Showcase & Key Features
+## 2. Platform Architecture & Visual Showcase
 
 ### Interactive Call Trace Timeline & Playback
 
@@ -58,15 +73,15 @@ The **Active Autopsy Workbench** provides granular inspection into every instruc
 
 ![Interactive Call Trace Timeline & Playback](docs/screenshots/01-autopsy-workbench-timeline.png)
 
-- **Playback Controls**: Step through transactions sequentially using Play, Pause, Next Step, Previous Step, and Reset buttons, or click individual milestone nodes directly on the interactive scrubber track.
-- **Vulnerability Inflection Point Highlighting**: Visual indicators prominently mark the exact step where unauthorized minting, state desynchronization, or vault drainage occurred.
+- **Playback Controls**: Step through transactions sequentially using Play, Pause, Next Step, Previous Step, and Reset buttons, or scrub directly across execution milestone nodes.
+- **Vulnerability Inflection Point Highlighting**: Visual indicators prominently mark the exact instruction where unauthorized minting, state desynchronization, or vault drainage occurred.
 - **Hierarchical Invocation Tree**: Detailed invocation cards display the instruction name, depth level, caller account, target contract/program, and gas or Compute Unit (CU) consumption.
 - **Real-Time Live Balance Delta**: Dynamically recalculates multi-asset token inflows and outflows for the current execution frame, distinguishing `Attacker Side` profits from `Victim Vault` drains.
 - **Inline Invariant Status**: Real-time evaluation display indicating whether the protocol invariant is held or violated at the selected frame.
 
 ---
 
-### Invariant & Patch Verification Sandbox
+### Rust Invariant & Remediation Sandbox
 
 The **Rust Invariant Sandbox** empowers security researchers to test remediation patches directly against real-world transaction traces without requiring a full live testnet deployment.
 
@@ -93,7 +108,7 @@ Direct visual comparison between the vulnerable production smart contract code a
 
 ---
 
-### Multi-Chain Forensic Threat Repository & Catalog
+### Forensic Threat Repository & Incident Catalog
 
 A unified database indexing verified multi-chain exploits, categorized by ecosystem, root cause, and financial impact.
 
@@ -206,25 +221,49 @@ Built-in authoring flow for security researchers, whitehats, and auditing firms 
 
 ---
 
-## 5. Rust Crate Architecture (`alt-autopsy-core`)
+## 5. Native Rust Workspace Architecture (`alt-autopsy-core` & `alt-autopsy-cli`)
 
-### Crate Structure
+The repository includes a production-grade native Rust workspace powering both in-browser WebAssembly evaluation and standalone offline terminal regression testing.
+
+### Cargo Workspace Structure
 
 ```
-alt-autopsy-core/
-├── Cargo.toml
-└── src/
-    ├── lib.rs             # WASM bindings and exported Javascript interfaces
-    ├── types.rs           # Multi-chain trace step, balance change, and invariant types
-    ├── engine.rs          # State transition evaluator and call depth simulator
-    ├── invariants/        # Formal invariant verification definitions
-    │   ├── solana.rs      # Sysvar checks, CPI signers, rent exemption
-    │   ├── evm.rs         # Reentrancy locks, flash-loan solvency, debt ratios
-    │   └── move_lang.rs   # Fee roundings, coin balances, resource integrity
-    └── report.rs          # Auditor-grade Markdown post-mortem generator
+ALT-Onchain-Autopsy/
+├── Cargo.toml                       # Root workspace manifest
+│
+├── alt-autopsy-core/                # WebAssembly core library (cdylib, rlib)
+│   ├── Cargo.toml                   # wasm-bindgen, serde, serde_json
+│   └── src/
+│       ├── lib.rs                   # WASM entry points & exported JS bindings
+│       ├── types.rs                 # Multi-chain trace step & invariant types
+│       ├── engine.rs                # Deterministic state transition engine
+│       ├── report.rs                # Auditor Markdown post-mortem generator
+│       └── invariants/              # Formal invariant rules
+│           ├── mod.rs               # InvariantChecker trait
+│           ├── solana.rs            # Sysvar spoofing & collateral checks
+│           ├── evm.rs               # Liquidity post-checks & replica zero-root guards
+│           └── move_lang.rs         # Arithmetic fee truncation guards
+│
+└── alt-autopsy-cli/                 # Native terminal replay tool
+    ├── Cargo.toml
+    └── src/
+        └── main.rs                  # CLI subcommand parser (replay, report, version)
 ```
 
-### `Cargo.toml` Specification
+### Crate Specifications (`Cargo.toml`)
+
+The root [`Cargo.toml`](Cargo.toml) links the crates into a single unified workspace:
+
+```toml
+[workspace]
+members = [
+    "alt-autopsy-core",
+    "alt-autopsy-cli",
+]
+resolver = "2"
+```
+
+The core engine [`alt-autopsy-core/Cargo.toml`](alt-autopsy-core/Cargo.toml) targets both WebAssembly and native compilation:
 
 ```toml
 [package]
@@ -242,10 +281,6 @@ crate-type = ["cdylib", "rlib"]
 wasm-bindgen = "0.2.92"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-solana-program = "1.18"
-alloy-primitives = { version = "0.7", default-features = false }
-sha3 = "0.10"
-bincode = "1.3"
 
 [profile.release]
 opt-level = "z"
@@ -254,11 +289,12 @@ codegen-units = 1
 panic = "abort"
 ```
 
-### Core Rust Data Structures & Invariant Pipeline
+### Core Data Structures & Invariant Pipeline
+
+Defined in [`alt-autopsy-core/src/types.rs`](alt-autopsy-core/src/types.rs):
 
 ```rust
 use serde::{Deserialize, Serialize};
-use wasm_bindgen::prelude::*;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct BalanceChange {
@@ -274,6 +310,8 @@ pub struct InvariantAssertion {
     pub name: String,
     pub expression: String,
     pub description: String,
+    pub vulnerable_evaluation: String,
+    pub patched_evaluation: String,
     pub revert_reason: String,
 }
 
@@ -284,21 +322,30 @@ pub struct TraceStep {
     pub caller: String,
     pub target: String,
     pub method: String,
+    pub call_type: String,
     pub gas_or_cu: u64,
     pub is_exploit_point: bool,
+    pub exploit_detail: Option<String>,
     pub balance_changes: Vec<BalanceChange>,
     pub invariant: InvariantAssertion,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-pub enum AutopsyOutcome {
-    ExploitExecuted { net_loss_usd: f64, drained_assets: Vec<(String, f64)> },
-    RevertedEarly { step_index: usize, reason: String, gas_consumed: u64 },
-    InvariantHeldSecure,
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct EvaluationResult {
+    pub status: String,
+    pub revert_step_index: Option<usize>,
+    pub revert_reason: Option<String>,
+    pub net_attacker_profit_usd: f64,
+    pub total_gas_or_compute_units: u64,
+    pub active_invariants_checked: usize,
+    pub invariant_violations: Vec<String>,
+    pub execution_log: Vec<String>,
 }
 ```
 
-### WebAssembly Bindings (`wasm-bindgen`)
+### WebAssembly Interface (`wasm-bindgen`)
+
+Exported from [`alt-autopsy-core/src/lib.rs`](alt-autopsy-core/src/lib.rs):
 
 ```rust
 #[wasm_bindgen]
@@ -310,138 +357,249 @@ pub struct AutopsyEngine {
 impl AutopsyEngine {
     #[wasm_bindgen(constructor)]
     pub fn new(patch_enabled: bool) -> Self {
-        AutopsyEngine { patch_enabled }
+        Self { patch_enabled }
     }
 
     #[wasm_bindgen]
-    pub fn evaluate_trace(&self, trace_json: &str) -> Result<JsValue, JsValue> {
-        let steps: Vec<TraceStep> = serde_json::from_str(trace_json)
-            .map_err(|e| JsValue::from_str(&e.to_string()))?;
-
-        for (i, step) in steps.iter().enumerate() {
-            if self.patch_enabled && step.is_exploit_point {
-                let outcome = AutopsyOutcome::RevertedEarly {
-                    step_index: i,
-                    reason: step.invariant.revert_reason.clone(),
-                    gas_consumed: step.gas_or_cu,
-                };
-                return Ok(serde_wasm_bindgen::to_value(&outcome)?);
-            }
-        }
-
-        let outcome = AutopsyOutcome::ExploitExecuted {
-            net_loss_usd: 120_000_000.0,
-            drained_assets: vec![("whETH".into(), 120_000.0)],
-        };
-        Ok(serde_wasm_bindgen::to_value(&outcome)?)
+    pub fn evaluate_trace(&self, incident_json: &str, target_step: Option<usize>) -> Result<String, JsValue> {
+        let incident: IncidentTrace = serde_json::from_str(incident_json)
+            .map_err(|e| JsValue::from_str(&format!("JSON deserialize error: {}", e)))?;
+        let engine = TraceEngine::new(self.patch_enabled);
+        let result = engine.evaluate(&incident, target_step);
+        serde_json::to_string(&result)
+            .map_err(|e| JsValue::from_str(&format!("JSON serialize error: {}", e)))
     }
 }
 ```
 
----
+### Command-Line Interface (`alt-autopsy-cli`)
 
-## 6. CLI Terminal Usage (`alt-autopsy-cli`)
-
-The platform is designed to be utilized directly inside protocol CI/CD security regression suites:
+The native CLI tool ([`alt-autopsy-cli/src/main.rs`](alt-autopsy-cli/src/main.rs)) enables automated protocol regression tests in CI/CD pipelines:
 
 ```bash
-# 1. Install the CLI via Cargo
-cargo install alt-onchain-autopsy-cli
-
-# 2. Inspect a recorded exploit transaction against a local patch
-alt-autopsy replay \
-  --chain solana \
-  --tx 2zbeHzyQJbHw2w4Q...5jYw9hK8fD3n2P1x8kL0vB7 \
-  --patch-crate ./programs/wormhole-bridge \
-  --assert-invariants
-
-# 3. Terminal Output:
-# [ALT-AUTOPSY] Loaded trace (4 steps, 3 CPI frames)
-# [ALT-AUTOPSY] Evaluating invariant: 'Strict Native Instruction Sysvar Invariant'
-# [ALT-AUTOPSY] Result: REVERTED_EARLY (ProgramError::InvalidAccountData)
-# [ALT-AUTOPSY] Invariant Status: 100% of exploit vectors prevented.
+# Replay an exploit trace with hardened invariants enabled
+cargo run --bin alt-autopsy-cli -- replay --trace ./trace.json --patch
 ```
 
 ---
 
-## 7. Local Development & Web Application Setup
+## 6. Breakthrough Installation & Run Guide
 
-### Prerequisites
-- **Node.js**: $\ge$ 18.0.0 (Node 20+ recommended)
-- **npm** or package manager of choice
-- **Google Chrome** or Chromium (optional, for running the automated screenshot suite)
-- **Rust Toolchain** (`cargo`, `rustc`, `wasm-pack` if modifying native Rust WASM binaries)
+Follow this walkthrough to set up, build, and run both the web dashboard and the native Rust engine.
 
-### Installation & Run
+### System Prerequisites
+
+| Dependency | Minimum Version | Recommended | Notes |
+| :--- | :--- | :--- | :--- |
+| **Node.js** | `>= 18.0.0` | `20.x` or `24.x` | Runtime for Vite web application |
+| **npm** | `>= 9.0.0` | `10.x` or `11.x` | Node package manager |
+| **Rust / Cargo** | `>= 1.75.0` | Latest Stable | Optional: required only for native Rust CLI or rebuilding WASM |
+| **Google Chrome** | Current | Current | Optional: used by `scripts/capture.js` for automated screenshots |
+
+---
+
+### Step 1: Clone the Repository
+
+Clone the repository from GitHub and navigate to the project directory:
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/flexyledger/alt-onchain-autopsy.git
-cd alt-onchain-autopsy
+git clone https://github.com/Artificial-Ledger-Technology/ALT-Onchain-Autopsy.git
+cd ALT-Onchain-Autopsy
+```
 
-# 2. Install web dependencies (use --legacy-peer-deps if peer resolutions conflict)
+---
+
+### Step 2: Install Web Dependencies
+
+Install npm dependencies using the `--legacy-peer-deps` flag:
+
+```bash
 npm install --legacy-peer-deps
+```
 
-# 3. Start the development server
+> [!NOTE]
+> **Why `--legacy-peer-deps`?**  
+> Vite v8 introduces updated peer resolution requirements for optional compiler bindings. Passing `--legacy-peer-deps` prevents npm version resolver halts while maintaining complete dependency security and integrity.
+
+Verify the installation succeeded:
+```bash
+npm ls --depth=0
+```
+
+---
+
+### Step 3: Run the Development Server
+
+Start the local Vite development server:
+
+```bash
 npm run dev
+```
 
-# 4. Verify TypeScript compilation and production build
-npm run lint
+You will see output similar to:
+```text
+  VITE v8.3.5  ready in 280 ms
+
+  ➜  Local:   http://localhost:3000/
+  ➜  Network: http://172.24.12.168:3000/
+```
+
+Open your browser and navigate to **`http://localhost:3000`**.  
+The dashboard is now live with hot module replacement (HMR) enabled.
+
+---
+
+### Step 4: Build for Production & Preview
+
+To generate an optimized, minified production build:
+
+```bash
 npm run build
 ```
 
-The web dashboard is served at `http://localhost:3000`.
+This executes `tsc` (TypeScript typechecking) followed by `vite build`. Output assets are compiled into [`dist/`](dist/):
+```text
+dist/index.html                   1.49 kB │ gzip:  0.64 kB
+dist/assets/index-CbBB8Nbe.css   38.06 kB │ gzip:  7.08 kB
+dist/assets/index-Dt5IRjWE.js   332.22 kB │ gzip: 97.18 kB
+✓ built in 240ms
+```
+
+To test the production build locally:
+```bash
+npm run preview
+```
 
 ---
 
-## 8. Automated Screenshot Generation
+### Step 5: Run Static Type Checking & Linting
 
-ALT-Onchain-Autopsy includes a dedicated headless capture script (`scripts/capture.js`) powered by `puppeteer-core` and Google Chrome to generate high-resolution retina screenshots of all platform components directly from the running dev server:
+Run TypeScript type verification without emitting build artifacts:
 
 ```bash
-# Ensure dev server is running on port 3000
+npm run lint
+```
+
+A clean exit code (`0`) confirms full type correctness across all components, engine models, and data types.
+
+---
+
+### Step 6: Build & Test Native Rust Crates
+
+If you have the Rust toolchain installed (`cargo` & `rustc`), build and test the workspace:
+
+```bash
+# 1. Build all workspace crates (alt-autopsy-core & alt-autopsy-cli)
+cargo build --workspace
+
+# 2. Check the CLI tool version
+cargo run --bin alt-autopsy-cli -- --version
+
+# 3. View CLI usage options
+cargo run --bin alt-autopsy-cli -- --help
+```
+
+To compile `alt-autopsy-core` to a WebAssembly module for direct browser import using `wasm-pack`:
+```bash
+wasm-pack build alt-autopsy-core --target web --release
+```
+
+---
+
+### Step 7: Automated Visual Test & Screenshot Suite
+
+The repository includes a headless automated screenshot suite in [`scripts/capture.js`](scripts/capture.js). Powered by `puppeteer-core` and Google Chrome, it drives the application across views, toggles the invariant patch switch, and captures $2\times$ retina images:
+
+```bash
+# 1. In Terminal 1: Ensure dev server is active
 npm run dev
 
-# In another terminal, generate all UI screenshots
+# 2. In Terminal 2: Run the capture script
 node scripts/capture.js
 ```
 
-Generated assets are saved directly into [`docs/screenshots/`](docs/screenshots/):
-- `01-autopsy-workbench-timeline.png`: Step-by-step trace timeline and live balance delta monitor.
-- `02-invariant-remediation-sandbox.png`: Rust WASM invariant simulator with patch active and early revert verdict.
-- `02b-source-code-invariant-diff.png`: Side-by-side vulnerable vs. remediated smart contract code diff.
-- `03-incident-catalog-threat-repo.png`: Threat repository catalog with KPI metrics and ecosystem filter pills.
-- `04-poc-test-harness.png`: Reproducible Anchor and Foundry test cases.
-- `05-executive-autopsy-report.png`: Formatted forensic post-mortem and Markdown exporter.
-- `06-rust-wasm-specs.png`: Rust crate specifications and memory architecture.
-- `07-submit-autopsy-modal.png`: Community incident submission modal.
+All 8 screenshots are rendered directly to [`docs/screenshots/`](docs/screenshots/).
 
 ---
 
-## 9. Contributing a New Autopsy
+### Troubleshooting & Common Pitfalls
 
-We welcome post-mortem contributions from security researchers, whitehats, and protocol teams.
+#### 1. Peer Dependency Resolution Error
+- **Symptom**: `npm error ERESOLVE could not resolve peer dependency`
+- **Solution**: Run `npm install --legacy-peer-deps`.
 
-To contribute:
-1. **Via UI**: Click **"Submit Autopsy"** in the top navigation bar to fill in the incident dossier, initial call trace step, and code diff.
-2. **Via Code PR**:
-   - Add a new record in `src/data/incidents.ts` following the `Incident` interface in `src/types/incident.ts`.
-   - Provide the complete invocation stack, exact balance delta per step, vulnerable vs. patched code, and a reproducible PoC test case.
-   - Run `npm run lint` and `npm run build` to confirm type completeness.
-   - Submit a Pull Request titled `autopsy: [Protocol Name] [Vulnerability Type]`.
+#### 2. Port 3000 Already In Use
+- **Symptom**: `Port 3000 is in use, trying another one...`
+- **Solution**: Stop any conflicting process on port 3000, or let Vite automatically select the next available port (e.g., `http://localhost:3001`).
 
----
-
-## 10. Security Policy & Invariant Verification Standards
-
-Every post-mortem in ALT-Onchain-Autopsy is held to formal verification standards:
-- **Reproducibility**: Must specify the block number/slot and original transaction hash.
-- **Invariant Clarity**: Exploits must be framed as a broken mathematical or state invariant (e.g., balance conservation, access control gate, or oracle price bound), not merely an informal bug description.
-- **Proof-of-Concept Inclusion**: Submissions must include executable tests that succeed against the vulnerable code and fail (revert) against the patched implementation.
+#### 3. Chrome Not Found for Screenshot Capture
+- **Symptom**: `Error: Failed to launch browser process` when running `node scripts/capture.js`.
+- **Solution**: Ensure Google Chrome or Chromium is installed. By default, `scripts/capture.js` looks for Chrome at `C:\Program Files\Google\Chrome\Application\chrome.exe` on Windows. For macOS/Linux, adjust the path in `scripts/capture.js` to `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome` or `/usr/bin/google-chrome`.
 
 ---
 
-## 11. License & Credits
+## 7. Forensic Invariant Methodology
 
-- **License**: MIT License or Apache License 2.0.
-- **Research Credits**: Developed with reference to on-chain public transaction data, audited security reports from OpenZeppelin, Neodyme, Trail of Bits, OtterSec, and community security researchers.
+ALT-Onchain-Autopsy models exploits as mathematical invariant failures across 4 phases:
+
+```
+[Attacker Calldata] ──> [Invocation Dispatch] ──> [Invariant Evaluation Gate] ──> [State Mutation]
+                                                               │
+                                         ┌─────────────────────┴─────────────────────┐
+                                         ▼                                           ▼
+                               [Patch Mode: OFF]                           [Patch Mode: ON]
+                                       │                                           │
+                                       ▼                                           ▼
+                          Invariant Check Skipped                     Invariant Trigger Asserted
+                                       │                                           │
+                                       ▼                                           ▼
+                            State Compromised / Drain                   Early Revert / $0 Drain
+```
+
+1. **Deconstruction**: The transaction trace is broken into hierarchical frames with calldata, caller, target, gas/CU, and token deltas.
+2. **Invariant Extraction**: The underlying assumption violated by the contract is formalized as a boolean proposition $I(\text{state})$.
+3. **Hardened Assertions**: Remediated smart contract code is synthesized incorporating compiler-enforced invariant guards.
+4. **Counterfactual Simulation**: The exploit trace is replayed through the patched contract inside the Rust/WASM sandbox to prove that execution reverts before unauthorized state modification.
+
+---
+
+## 8. Contributing a New Autopsy
+
+We invite security researchers, whitehats, protocol engineering teams, and auditor firms to contribute verified autopsies.
+
+### Method A: Via the Web Dashboard
+1. Launch the app (`npm run dev`).
+2. Click **"+ Submit Autopsy"** in the top navigation bar.
+3. Fill in the protocol name, ecosystem, vulnerability class, loss amount, technical root cause, and initial trace steps.
+4. Click **"Publish to Autopsy Repository"**.
+
+### Method B: Via Pull Request
+1. Fork and clone the repository.
+2. Add a new autopsy record in [`src/data/incidents.ts`](src/data/incidents.ts) adhering to the `Incident` interface in [`src/types/incident.ts`](src/types/incident.ts).
+3. Provide:
+   - Complete multi-step invocation trace with accurate CU/gas and balance deltas.
+   - Pre-exploit vulnerable source code and remediated patch diff.
+   - Executable PoC test case for Anchor, Foundry Forge, or Move CLI.
+4. Verify tests pass:
+   ```bash
+   npm run lint
+   npm run build
+   ```
+5. Submit a Pull Request titled `autopsy: [Protocol Name] - [Vulnerability Type]`.
+
+---
+
+## 9. Security Policy & Invariant Verification Standards
+
+Every post-mortem hosted in ALT-Onchain-Autopsy must adhere to rigorous cryptographic and forensic criteria:
+
+- **Slot & Hash Determinism**: Every autopsy must include valid, publicly verifiable block numbers/slots and original transaction hashes.
+- **Formal Invariant Definition**: Submissions must describe the broken invariant in terms of state post-conditions (e.g., $k$-factor liquidity formulas, sysvar key equalities, health factors, or zero-byte sentinel guards).
+- **Dual-State PoC Requirement**: PoC code must reproduce the exploit against vulnerable bytecode and confirm early revert when the remediation patch is compiled.
+
+---
+
+## 10. License & Research Credits
+
+- **Software License**: Dual-licensed under the **MIT License** or **Apache License 2.0** at your option. See [LICENSE](LICENSE) for details.
+- **Research References**: Developed with reference to on-chain transaction logs and security disclosures published by OpenZeppelin, Neodyme, Trail of Bits, OtterSec, Jump Crypto, Euler Labs, and independent community whitehats.

@@ -17,3 +17,4 @@ impl InvariantChecker for NonZeroFlashFeeInvariant {
         Err("MoveAbort(EFEE_ROUNDED_TO_ZERO): Computed fee truncated to zero")
     }
 }
+

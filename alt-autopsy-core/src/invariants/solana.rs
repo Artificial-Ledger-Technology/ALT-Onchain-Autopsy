@@ -36,3 +36,4 @@ impl InvariantChecker for CollateralHealthInvariant {
         Err("MangoError::InsufficientCollateral: Health factor under minimum threshold")
     }
 }
+

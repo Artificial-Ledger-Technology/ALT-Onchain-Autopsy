@@ -78,3 +78,4 @@ pub struct EvaluationResult {
     pub invariant_violations: Vec<String>,
     pub execution_log: Vec<String>,
 }
+

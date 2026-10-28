@@ -10,3 +10,4 @@ license = "MIT OR Apache-2.0"
 alt-autopsy-core = { path = "../alt-autopsy-core" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+

@@ -34,3 +34,4 @@ impl InvariantChecker for NonZeroRootInvariant {
         }
     }
 }
+

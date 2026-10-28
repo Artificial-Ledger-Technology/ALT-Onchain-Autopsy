@@ -65,3 +65,4 @@ pub fn evaluate_native(
     let engine = TraceEngine::new(patch_enabled);
     engine.evaluate(incident, target_step)
 }
+
