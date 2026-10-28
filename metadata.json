@@ -1,0 +1,6 @@
+{
+  "name": "ALT-Onchain-Autopsy",
+  "description": "Blockchain Incident Post-Mortem Repository and forensic analysis platform with visual transaction timelines, call trace breakdowns, and WebAssembly engine.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
